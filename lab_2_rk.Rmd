@@ -50,3 +50,38 @@ autoplot(penguin_pca,
 #see example code for more customization
 ```
 
+## Part 2: ggplot customization & reading in different file types
+
+### Read in an .xlsx file & do some wrangling
+
+```{r}
+fish_noaa <- read_excel(here("data", "foss_landings.xlsx")) %>% 
+  clean_names() %>% 
+  mutate(across(where(is.character), tolower)) %>% #put everything in lowercase (for any character column)
+  mutate(nmfs_name = str_sub(nmfs_name, end=-4)) %>%  #get rid of " **" at the end of each name (keep original name, but remove last 4 characters)
+  filter(confidentiality=="public")
+```
+
+Make a customized graph
+```{r}
+fish_plot <- ggplot(data=fish_noaa, aes(x=year, y=pounds))+
+  geom_line(aes(color=nmfs_name), show.legend=F)+
+  theme_minimal()
+
+fish_plot
+
+#make interactive graph
+ggplotly(fish_plot)
+
+#use gghighlight to highlight certain series
+ggplot(data=fish_noaa, aes(x=year, y=pounds, group=nmfs_name))+
+  geom_line()+
+  theme_minimal()+
+  gghighlight(nmfs_name=="tunas") #highlight based on name "tuna"
+
+ggplot(data=fish_noaa, aes(x=year, y=pounds, group=nmfs_name))+
+  geom_line(aes(color=nmfs_name))+
+  theme_minimal()+
+  gghighlight(max(pounds) > 1e8) #highlight based on values
+```
+
