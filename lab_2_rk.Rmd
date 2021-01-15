@@ -85,3 +85,45 @@ ggplot(data=fish_noaa, aes(x=year, y=pounds, group=nmfs_name))+
   gghighlight(max(pounds) > 1e8) #highlight based on values
 ```
 
+### Part 3: read in data from URL. `lubridate()`, `mutate()`. make graph with months in logical order.
+
+```{r}
+monroe_wt <- read_csv("https://data.bloomington.in.gov/dataset/2c81cfe3-62c2-46ed-8fcf-83c1880301d1/resource/13c8f7aa-af51-4008-80a9-56415c7c931e/download/mwtpdailyelectricitybclear.csv") %>% 
+  clean_names()
+```
+
+```{r}
+monroe_ts <- monroe_wt %>% 
+  mutate(date = mdy(date)) %>% 
+  mutate(record_month = month(date)) %>%  #pull the month from the date column
+  mutate(month_name = month.abb[record_month]) %>%  #add column with month abbreviation (index by whatever values are in the record_month column). If plotted like this in ggplot, months show up alphabetically. Need to convert month name to factor and set order of factor to match order of months.
+  mutate(month_name = fct_reorder(month_name, record_month)) #convert character to factor, update values based on record_month
+
+#to check, do `levels(monroe_ts$month_name)` in console
+
+ggplot(data=monroe_ts, aes(x=month_name, y=total_k_wh))+
+  geom_jitter()
+```
+
+### Part 4: Compound figures with `patchwork`
+
+```{r}
+graph_a <- ggplot(data=penguins, aes(x=body_mass_g, y=flipper_length_mm))+
+  geom_point()
+graph_a
+
+graph_b <- ggplot(data=penguins, aes(x=species, y=flipper_length_mm))+
+  geom_jitter(aes(color=species), show.legend = F)
+graph_b
+
+#Use | to put graphs side by side
+#Use / to put graphs one over the other
+
+graph_c <- (graph_a | graph_b)/fish_plot &
+  theme_dark()
+#use & and everything after applies to everything before the &
+
+graph_c
+ggsave(here("fig","graph_c_rk.png"), width=5, height=6) #will save most recently run graph, height and width are default in inches
+```
+
