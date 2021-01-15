@@ -1,0 +1,52 @@
+---
+title: "Lab 2"
+author: "Roshni Katrak-Adefowora"
+date: "1/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(janitor)
+library(palmerpenguins)
+library(here)
+
+#For PCA
+library(ggfortify)
+
+#For ggplot customization
+library(readxl)
+library(gghighlight)
+library(lubridate)
+library(plotly)
+
+#To make compound figures
+library(patchwork)
+```
+
+## Part 1: PCA with penguins
+
+```{r}
+penguin_pca <- penguins %>% 
+  select(body_mass_g, ends_with("_mm")) %>% 
+  drop_na() %>% 
+  scale() %>% #scale data
+  prcomp() #run PCA
+
+penguin_pca$rotation
+
+#make biplot
+
+penguin_complete <- penguins %>% 
+  drop_na(body_mass_g, ends_with("mm")) #keep same observations that exist in PCA biplot (they HAVE to match), but also contain other variables not included in PCA but that we might use to change aesthetics of graph (i.e., color based on species)
+
+autoplot(penguin_pca,
+         data=penguin_complete,
+         colour="species", #must be spelled "colour"
+         loadings=T,
+         loadings.label=T)+
+  theme_minimal()
+#see example code for more customization
+```
+
